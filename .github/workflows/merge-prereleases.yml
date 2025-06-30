@@ -37,6 +37,8 @@ jobs:
           fi
         done
 
+        echo "NOTES: $NOTES"
+
         # # 更新正式 Release
         # curl -X PATCH 
         #   -H "Accept: application/vnd.github+json" \
