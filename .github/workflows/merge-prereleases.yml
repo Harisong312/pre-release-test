@@ -34,7 +34,9 @@ jobs:
         done
 
         # 更新正式 Release
-        curl -X PATCH -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
+        curl -X PATCH 
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer <YOUR-TOKEN>" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
           -d '{"body": "'"${NOTES}"'"}' \
           "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
