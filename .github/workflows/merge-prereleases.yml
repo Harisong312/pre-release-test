@@ -1,0 +1,40 @@
+name: Merge Pre-release Notes
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  merge-notes:
+    if: startsWith(github.event.release.tag_name, 'v') && !contains(github.event.release.tag_name, '-')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Combine Pre-release Notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # 安装依赖
+        sudo apt-get install -y jq
+
+        # 获取当前版本号 (如 v1.0.0)
+        VERSION="${{ github.event.release.tag_name }}"
+        
+        # 获取所有预发布日志
+        NOTES=""
+        for i in {1..4}; do
+          TAG="${VERSION}-$i"
+          RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG")
+          
+          if [ "$(echo "$RESPONSE" | jq -r '.message')" != "Not Found" ]; then
+            BODY=$(echo "$RESPONSE" | jq -r '.body' | sed 's/"/\\"/g')
+            NOTES+="\n\n## $TAG\n$BODY"
+          fi
+        done
+
+        # 更新正式 Release
+        curl -X PATCH -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"body": "'"${NOTES}"'"}' \
+          "https://api.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}"
