@@ -9,7 +9,7 @@ on:
 
 jobs:
   merge-notes:
-    if: startsWith(github.event.release.tag_name, 'v') && !contains(github.event.release.tag_name, '-')
+    # if: startsWith(github.event.release.tag_name, 'v') && !contains(github.event.release.tag_name, '-')
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +21,8 @@ jobs:
         sudo apt-get install -y jq
 
         # 获取当前版本号 (如 v1.0.0)
-        VERSION="${{ github.event.release.tag_name }}"
+        # VERSION="${{ github.event.release.tag_name }}"
+        VERSION="v1.0.3"
         
         # 获取所有预发布日志
         NOTES=""
@@ -30,6 +31,8 @@ jobs:
           echo "正在处理 TAG: $TAG"
           RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{github.repository_owner}}/${{ github.repository }}/releases/tags/$TAG")
+
+          echo "RESPONSE: $RESPONSE"
           
           if [ "$(echo "$RESPONSE" | jq -r '.message')" != "Not Found" ]; then
             BODY=$(echo "$RESPONSE" | jq -r '.body' | sed 's/"/\\"/g')
