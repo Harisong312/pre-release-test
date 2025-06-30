@@ -24,6 +24,7 @@ jobs:
         NOTES=""
         for i in {1..4}; do
           TAG="${VERSION}-$i"
+          echo "正在处理 TAG: $TAG"
           RESPONSE=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/${{github.repository_owner}}/${{ github.repository }}/releases/tags/$TAG")
           
