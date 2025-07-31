@@ -62,6 +62,7 @@ jobs:
       #     git push origin "$MERGE_BRANCH"
 
       - name: Create Pull Request
+        id: create-pr
         run: |
           SOURCE_BRANCH=dev
           MERGE_BRANCH=${GITHUB_REF#refs/heads/}
@@ -105,7 +106,7 @@ jobs:
       # 可选：自动合并 PR（如果启用）
       - name: Auto-merge Pull Request
         run: |
-          PR_NUMBER="${{ steps.merge.outputs.pr_number }}"
+          PR_NUMBER="${{ steps.create-pr.outputs.pr_number }}"
           
           echo "🔄 尝试自动合并 PR #$PR_NUMBER"
           echo "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge"
