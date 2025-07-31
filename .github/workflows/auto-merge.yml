@@ -63,14 +63,14 @@ jobs:
 
       - name: Create Pull Request
         run: |
-          BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
+          SOURCE_BRANCH="${{ steps.branch-info.outputs.branch_name }}"
           MERGE_BRANCH="dev"
           
           echo "🔄 创建 Pull Request: $MERGE_BRANCH -> dev"
 
 
-          echo "$MERGE_BRANCH"
-          echo "$BRANCH_NAME"
+          echo "MERGE_BRANCH -->$MERGE_BRANCH"
+          echo "SOURCE_BRANCH --> $SOURCE_BRANCH"
           
           # 创建 PR
           PR_RESPONSE=$(curl -L \
