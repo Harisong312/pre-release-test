@@ -69,8 +69,8 @@ jobs:
           echo "🔄 创建 Pull Request: $MERGE_BRANCH -> dev"
 
 
-          echo "merge_branch=$MERGE_BRANCH" >> $GITHUB_OUTPUT
-          echo "source_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "$MERGE_BRANCH"
+          echo "$BRANCH_NAME"
           
           # 创建 PR
           PR_RESPONSE=$(curl -L \
