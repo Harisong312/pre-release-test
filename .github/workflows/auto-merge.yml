@@ -63,10 +63,10 @@ jobs:
 
       - name: Create Pull Request
         run: |
-          SOURCE_BRANCH="${{ steps.branch-info.outputs.branch_name }}"
+          SOURCE_BRANCH=${GITHUB_REF#refs/heads/}
           MERGE_BRANCH="dev"
           
-          echo "🔄 创建 Pull Request: $MERGE_BRANCH -> dev"
+          echo "🔄 创建 Pull Request: $SOURCE_BRANCH -> dev"
 
 
           echo "MERGE_BRANCH -->$MERGE_BRANCH"
