@@ -15,45 +15,114 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0  # 获取完整历史记录
 
-      - name: Setup Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      # - name: Setup Git
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get branch info
-        id: branch-info
-        run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "发布分支: $BRANCH_NAME"
+      # - name: Get branch info
+      #   id: branch-info
+      #   run: |
+      #     BRANCH_NAME=${GITHUB_REF#refs/heads/}
+      #     echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+      #     echo "发布分支: $BRANCH_NAME"
 
-      - name: Merge to dev branch
-        id: merge
+      # - name: Create merge branch
+      #   id: merge
+      #   run: |
+      #     BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
+      #     MERGE_BRANCH="auto-merge/$BRANCH_NAME-to-dev-$(date +%s)"
+          
+      #     echo "merge_branch=$MERGE_BRANCH" >> $GITHUB_OUTPUT
+      #     echo "source_branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+      #     # 创建新的合并分支，基于 dev 分支
+      #     git checkout dev
+      #     git pull origin dev
+      #     git checkout -b "$MERGE_BRANCH"
+          
+      #     # 尝试合并 release 分支
+      #     echo "🔄 正在合并 $BRANCH_NAME 到临时分支 $MERGE_BRANCH..."
+          
+      #     if git merge "origin/$BRANCH_NAME" --no-ff -m "chore: merge $BRANCH_NAME into dev"; then
+      #       echo "✅ 合并成功"
+      #       echo "merge_success=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "❌ 合并失败，存在冲突"
+      #       echo "merge_success=false" >> $GITHUB_OUTPUT
+      #       git merge --abort
+      #       exit 1
+      #     fi
+
+      # - name: Push merge branch
+      #   if: steps.merge.outputs.merge_success == 'true'
+      #   run: |
+      #     MERGE_BRANCH="${{ steps.merge.outputs.merge_branch }}"
+      #     echo "📤 推送合并分支: $MERGE_BRANCH"
+      #     git push origin "$MERGE_BRANCH"
+
+      - name: Create Pull Request
+        id: create-pr
         run: |
-          BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
+          SOURCE_BRANCH=dev
+          MERGE_BRANCH=${GITHUB_REF#refs/heads/}
           
-          # 切换到 dev 分支
-          git checkout dev
-          git pull origin dev
+          echo "🔄 创建 Pull Request: $MERGE_BRANCH -> dev"
+
+
+          echo "MERGE_BRANCH -->$MERGE_BRANCH"
+          echo "SOURCE_BRANCH --> $SOURCE_BRANCH"
+          echo "GITHUB_REF --> https://api.github.com/repos/${{ github.repository }}/pulls"
           
-          # 尝试合并 release 分支
-          echo "🔄 正在合并 $BRANCH_NAME 到 dev 分支..."
+          # 创建 PR
+          PR_RESPONSE=$(curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls" \
+            -d '{
+              "title": "🤖 Auto-merge: '"$MERGE_BRANCH"' → dev",
+              "head": "'"$MERGE_BRANCH"'",
+              "base": "'"$SOURCE_BRANCH"'",
+              "body": "## 🤖 自动合并 Pull Request\n\n**源分支**: `'"$MERGE_BRANCH"'`\n**目标分支**: `'"$SOURCE_BRANCH"'`\n**创建时间**: '"$(date -u)"'\n\n### 📝 说明\n这是一个由 GitHub Actions 自动创建的 Pull Request，用于将发布分支合并到开发分支。\n\n### ✅ 检查清单\n- [x] 自动合并测试通过\n- [ ] 代码审查\n- [ ] 测试验证\n\n---\n*此 PR 由 GitHub Actions 自动创建*"
+            }')
           
-          if git merge "origin/$BRANCH_NAME" --no-ff -m "chore: merge $BRANCH_NAME into dev"; then
-            echo "✅ 合并成功"
-            echo "merge_success=true" >> $GITHUB_OUTPUT
+          PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
+          PR_URL=$(echo "$PR_RESPONSE" | jq -r '.html_url')
+          
+          if [ "$PR_NUMBER" != "null" ] && [ "$PR_NUMBER" != "" ]; then
+            echo "✅ Pull Request 创建成功!"
+            echo "PR 编号: #$PR_NUMBER"
+            echo "PR 链接: $PR_URL"
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
           else
-            echo "❌ 合并失败，存在冲突"
-            echo "merge_success=false" >> $GITHUB_OUTPUT
-            git merge --abort
+            echo "❌ Pull Request 创建失败"
+            echo "响应: $PR_RESPONSE"
             exit 1
           fi
 
-      - name: Push merged changes
-        if: steps.merge.outputs.merge_success == 'true'
+      # 可选：自动合并 PR（如果启用）
+      - name: Auto-merge Pull Request
         run: |
-          echo "📤 推送合并后的更改到 dev 分支..."
-          git push origin dev
+          PR_NUMBER="${{ steps.create-pr.outputs.pr_number }}"
+          
+          echo "🔄 尝试自动合并 PR #$PR_NUMBER"
+          echo "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge"
+          
+          # 启用自动合并
+          curl -L \
+            -X PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
+            -d '{
+              "commit_title": "🤖 Auto-merge: merge release branch into dev",
+              "commit_message": "Automatically merged by GitHub Actions",
+              "merge_method": "merge"
+            }'
 
       # - name: Create merge summary
       #   if: steps.merge.outputs.merge_success == 'true'
@@ -72,18 +141,6 @@ jobs:
       #     echo "**时间**: $(date -u)" >> $GITHUB_ENV
       #     echo "EOF" >> $GITHUB_ENV
 
-      # - name: Delete release branch (optional)
-      #   if: steps.merge.outputs.merge_success == 'true'
-      #   run: |
-      #     BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
-      #     echo "🗑️ 删除已合并的发布分支: $BRANCH_NAME"
-          
-      #     # 删除远程分支
-      #     git push origin --delete "$BRANCH_NAME" || echo "⚠️ 无法删除远程分支"
-          
-      #     # 删除本地分支
-      #     git branch -D "$BRANCH_NAME" || echo "⚠️ 无法删除本地分支"
-
   notify-failure:
     runs-on: ubuntu-latest
     needs: auto-merge
@@ -94,4 +151,5 @@ jobs:
         run: |
           echo "❌ 自动合并失败!"
           echo "分支: ${GITHUB_REF#refs/heads/}"
-          echo "请手动检查并解决冲突"
+          echo "无法创建自动合并的 Pull Request"
+          echo "请手动检查并解决冲突，然后手动创建 PR"
