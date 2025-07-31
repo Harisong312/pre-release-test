@@ -82,8 +82,8 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/pulls" \
             -d '{
               "title": "🤖 Auto-merge: '"$MERGE_BRANCH"' → dev",
-              "head": "'"$SOURCE_BRANCH"'",
-              "base": "dev",
+              "head": "'"$MERGE_BRANCH"'",
+              "base": "'"$SOURCE_BRANCH"'",
               "body": "## 🤖 自动合并 Pull Request\n\n**源分支**: `'"$MERGE_BRANCH"'`\n**目标分支**: `'"$SOURCE_BRANCH"'`\n**创建时间**: '"$(date -u)"'\n\n### 📝 说明\n这是一个由 GitHub Actions 自动创建的 Pull Request，用于将发布分支合并到开发分支。\n\n### ✅ 检查清单\n- [x] 自动合并测试通过\n- [ ] 代码审查\n- [ ] 测试验证\n\n---\n*此 PR 由 GitHub Actions 自动创建*"
             }')
           
