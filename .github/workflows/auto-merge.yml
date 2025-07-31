@@ -1,0 +1,97 @@
+name: Auto Merge Release Branches
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 获取完整历史记录
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get branch info
+        id: branch-info
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "发布分支: $BRANCH_NAME"
+
+      - name: Merge to dev branch
+        id: merge
+        run: |
+          BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
+          
+          # 切换到 dev 分支
+          git checkout dev
+          git pull origin dev
+          
+          # 尝试合并 release 分支
+          echo "🔄 正在合并 $BRANCH_NAME 到 dev 分支..."
+          
+          if git merge "origin/$BRANCH_NAME" --no-ff -m "chore: merge $BRANCH_NAME into dev"; then
+            echo "✅ 合并成功"
+            echo "merge_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ 合并失败，存在冲突"
+            echo "merge_success=false" >> $GITHUB_OUTPUT
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Push merged changes
+        if: steps.merge.outputs.merge_success == 'true'
+        run: |
+          echo "📤 推送合并后的更改到 dev 分支..."
+          git push origin dev
+
+      # - name: Create merge summary
+      #   if: steps.merge.outputs.merge_success == 'true'
+      #   run: |
+      #     BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
+      #     echo "🎉 自动合并完成!"
+      #     echo "分支: $BRANCH_NAME → dev"
+      #     echo "提交: $(git rev-parse HEAD)"
+          
+      #     # 创建 GitHub 评论 (可选)
+      #     echo "MERGE_SUMMARY<<EOF" >> $GITHUB_ENV
+      #     echo "🤖 **自动合并完成** " >> $GITHUB_ENV
+      #     echo "" >> $GITHUB_ENV
+      #     echo "**分支**: \`$BRANCH_NAME\` → \`dev\`" >> $GITHUB_ENV
+      #     echo "**提交**: \`$(git rev-parse --short HEAD)\`" >> $GITHUB_ENV
+      #     echo "**时间**: $(date -u)" >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+
+      # - name: Delete release branch (optional)
+      #   if: steps.merge.outputs.merge_success == 'true'
+      #   run: |
+      #     BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
+      #     echo "🗑️ 删除已合并的发布分支: $BRANCH_NAME"
+          
+      #     # 删除远程分支
+      #     git push origin --delete "$BRANCH_NAME" || echo "⚠️ 无法删除远程分支"
+          
+      #     # 删除本地分支
+      #     git branch -D "$BRANCH_NAME" || echo "⚠️ 无法删除本地分支"
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: auto-merge
+    if: failure()
+    
+    steps:
+      - name: Notify merge failure
+        run: |
+          echo "❌ 自动合并失败!"
+          echo "分支: ${GITHUB_REF#refs/heads/}"
+          echo "请手动检查并解决冲突"
