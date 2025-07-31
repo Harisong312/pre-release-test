@@ -66,11 +66,12 @@ jobs:
           SOURCE_BRANCH=dev
           MERGE_BRANCH=${GITHUB_REF#refs/heads/}
           
-          echo "🔄 创建 Pull Request: $SOURCE_BRANCH -> dev"
+          echo "🔄 创建 Pull Request: $MERGE_BRANCH -> dev"
 
 
           echo "MERGE_BRANCH -->$MERGE_BRANCH"
           echo "SOURCE_BRANCH --> $SOURCE_BRANCH"
+          echo "GITHUB_REF --> https://api.github.com/repos/${{ github.repository }}/pulls"
           
           # 创建 PR
           PR_RESPONSE=$(curl -L \
