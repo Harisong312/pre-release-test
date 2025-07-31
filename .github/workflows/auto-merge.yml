@@ -62,7 +62,6 @@ jobs:
       #     git push origin "$MERGE_BRANCH"
 
       - name: Create Pull Request
-        if: steps.merge.outputs.merge_success == 'true'
         run: |
           SOURCE_BRANCH="${{ steps.merge.outputs.source_branch }}"
           MERGE_BRANCH="${{ steps.merge.outputs.merge_branch }}"
@@ -100,7 +99,6 @@ jobs:
 
       # 可选：自动合并 PR（如果启用）
       - name: Auto-merge Pull Request
-        if: steps.merge.outputs.merge_success == 'true'
         run: |
           PR_NUMBER="${{ steps.merge.outputs.pr_number }}"
           
