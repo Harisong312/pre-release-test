@@ -108,6 +108,7 @@ jobs:
           PR_NUMBER="${{ steps.merge.outputs.pr_number }}"
           
           echo "🔄 尝试自动合并 PR #$PR_NUMBER"
+          echo "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge"
           
           # 启用自动合并
           curl -L \
