@@ -29,9 +29,10 @@ jobs:
         id: create-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: 
-          gh pr create --base ${{ steps.branch-info.outputs.source_branch }} --head ${{ steps.branch-info.outputs.branch_name }} --title "🤖 Auto-merge: ${{ steps.branch-info.outputs.branch_name }} → ${{ steps.branch-info.outputs.source_branch }}" --body "## 🤖 自动合并 Pull Request\n\n**源分支**: `'"${{ steps.branch-info.outputs.branch_name }}"'`\n**目标分支**: `'"${{ steps.branch-info.outputs.source_branch }}"'`\n**创建时间**: '"$(date -u)"'\n\n---\n*此 PR 由 GitHub Actions 自动创建*"
+        run: gh pr create --base ${{ steps.branch-info.outputs.source_branch }} --head ${{ steps.branch-info.outputs.branch_name }} --title "🤖 Auto-merge ${{ steps.branch-info.outputs.branch_name }} → ${{ steps.branch-info.outputs.source_branch }}"
 
+
+#  --title "🤖 Auto-merge: ${{ steps.branch-info.outputs.branch_name }} → ${{ steps.branch-info.outputs.source_branch }}" --body "## 🤖 自动合并 Pull Request\n\n**源分支**: `'"${{ steps.branch-info.outputs.branch_name }}"'`\n**目标分支**: `'"${{ steps.branch-info.outputs.source_branch }}"'`\n**创建时间**: '"$(date -u)"'\n\n---\n*此 PR 由 GitHub Actions 自动创建*"
       # - name: Create Pull Request
       #   id: create-pr
       #   run: |
