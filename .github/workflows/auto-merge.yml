@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
+          PR_URL=$(gh pr create \
           --base ${{ steps.branch-info.outputs.source_branch }} \
           --head ${{ steps.branch-info.outputs.branch_name }} \
           --title "🤖 Auto-merge: ${{ steps.branch-info.outputs.branch_name }} → ${{ steps.branch-info.outputs.source_branch }}" \
@@ -41,8 +41,10 @@ jobs:
           **Created Time**\: \`$(date -u)\`
 
           ---
-          *This PR is created by GitHub Actions*"
+          *This PR is created by GitHub Actions*")
 
+          echo "PR_URL=$PR_URL" >> $GITHUB_OUTPUT
+          echo "PR_URL"
 
       # 可选：自动合并 PR（如果启用）
       - name: Auto-merge Pull Request
