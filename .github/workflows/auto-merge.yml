@@ -5,14 +5,17 @@ on:
     branches:
       - 'main'
 
+permissions:
+  pull-requests: write
+
 jobs:
   auto-merge:
     runs-on: ubuntu-latest    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get branch info
         id: branch-info
@@ -78,23 +81,6 @@ jobs:
               "commit_message": "Automatically merged by GitHub Actions",
               "merge_method": "merge"
             }'
-
-      # - name: Create merge summary
-      #   if: steps.merge.outputs.merge_success == 'true'
-      #   run: |
-      #     BRANCH_NAME="${{ steps.branch-info.outputs.branch_name }}"
-      #     echo "🎉 自动合并完成!"
-      #     echo "分支: $BRANCH_NAME → dev"
-      #     echo "提交: $(git rev-parse HEAD)"
-          
-      #     # 创建 GitHub 评论 (可选)
-      #     echo "MERGE_SUMMARY<<EOF" >> $GITHUB_ENV
-      #     echo "🤖 **自动合并完成** " >> $GITHUB_ENV
-      #     echo "" >> $GITHUB_ENV
-      #     echo "**分支**: \`$BRANCH_NAME\` → \`dev\`" >> $GITHUB_ENV
-      #     echo "**提交**: \`$(git rev-parse --short HEAD)\`" >> $GITHUB_ENV
-      #     echo "**时间**: $(date -u)" >> $GITHUB_ENV
-      #     echo "EOF" >> $GITHUB_ENV
 
   notify-failure:
     runs-on: ubuntu-latest
