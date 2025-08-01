@@ -49,15 +49,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge ${{ steps.create-pr.outputs.PR_URL }} --merge
-          # # 启用自动合并
-          # curl -L \
-          #   -X PUT \
-          #   -H "Accept: application/vnd.github+json" \
-          #   -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-          #   -H "X-GitHub-Api-Version: 2022-11-28" \
-          #   "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
-          #   -d '{
-          #     "commit_title": "🤖 Auto-merge: merge release branch into dev",
-          #     "commit_message": "Automatically merged by GitHub Actions",
-          #     "merge_method": "merge"
-          #   }'
