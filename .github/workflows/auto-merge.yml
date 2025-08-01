@@ -44,7 +44,7 @@ jobs:
           *This PR is created by GitHub Actions*")
 
           echo "PR_URL=$PR_URL" >> $GITHUB_OUTPUT
-          echo "PR_URL"
+          echo "$PR_URL"
 
       # 可选：自动合并 PR（如果启用）
       - name: Auto-merge Pull Request
