@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get branch info
         id: branch-info
@@ -29,6 +27,8 @@ jobs:
 
       - name: Create Pull Request
         id: create-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_URL=$(gh pr create \
           --base ${{ steps.branch-info.outputs.source_branch }} \
@@ -47,6 +47,8 @@ jobs:
 
       # 可选：自动合并 PR（如果启用）
       - name: Auto-merge Pull Request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge ${{ steps.create-pr.outputs.PR_URL }} --merge --auto
           # # 启用自动合并
           # curl -L \
