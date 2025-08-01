@@ -21,14 +21,17 @@ jobs:
         id: branch-info
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          SOURCE_BRANCH=dev
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
           echo "发布分支: $BRANCH_NAME"
-          echo "SOURCE_BRANCH=dev" >> $GITHUB_OUTPUT
+          echo "source_branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
           echo "合并目标分支: $SOURCE_BRANCH"
 
       - name: Create Pull Request
         id: create-pr
-        run: gh pr create --base ${{ steps.branch-info.outputs.SOURCE_BRANCH }} --head ${{ steps.branch-info.outputs.branch_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr create --base ${{ steps.branch-info.outputs.source_branch }} --head ${{ steps.branch-info.outputs.branch_name }}
 
       # - name: Create Pull Request
       #   id: create-pr
