@@ -33,15 +33,15 @@ jobs:
           gh pr create \
           --base ${{ steps.branch-info.outputs.source_branch }} \
           --head ${{ steps.branch-info.outputs.branch_name }} \
-          --title "🤖 Auto-merge\: ${{ steps.branch-info.outputs.branch_name }} → ${{ steps.branch-info.outputs.source_branch }}" \
-          --body "## 🤖 自动合并 Pull Request
+          --title "🤖 Auto-merge: ${{ steps.branch-info.outputs.branch_name }} → ${{ steps.branch-info.outputs.source_branch }}" \
+          --body "## 🤖 Auto Merge Pull Request
 
-          **源分支**\: \`${{ steps.branch-info.outputs.branch_name }}\`
-          **目标分支**\: \`${{ steps.branch-info.outputs.source_branch }}\`
-          **创建时间**\: \`$(date -u)\`
+          **Base Branch**\: \`${{ steps.branch-info.outputs.source_branch }}\`
+          **Head Branch**\: \`${{ steps.branch-info.outputs.branch_name }}\`
+          **Created Time**\: \`$(date -u)\`
 
           ---
-          *此 PR 由 GitHub Actions 自动创建*"
+          *This PR is created by GitHub Actions*"
 
 
       # 可选：自动合并 PR（如果启用）
