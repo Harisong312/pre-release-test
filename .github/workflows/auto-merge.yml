@@ -44,38 +44,19 @@ jobs:
           *This PR is created by GitHub Actions*")
 
           echo "PR_URL=$PR_URL" >> $GITHUB_OUTPUT
-          echo "$PR_URL"
 
       # 可选：自动合并 PR（如果启用）
       - name: Auto-merge Pull Request
-        run: |
-          PR_NUMBER="${{ steps.create-pr.outputs.pr_number }}"
-          
-          echo "🔄 尝试自动合并 PR #$PR_NUMBER"
-          echo "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge"
-          
-          # 启用自动合并
-          curl -L \
-            -X PUT \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
-            -d '{
-              "commit_title": "🤖 Auto-merge: merge release branch into dev",
-              "commit_message": "Automatically merged by GitHub Actions",
-              "merge_method": "merge"
-            }'
-
-  notify-failure:
-    runs-on: ubuntu-latest
-    needs: auto-merge
-    if: failure()
-    
-    steps:
-      - name: Notify merge failure
-        run: |
-          echo "❌ 自动合并失败!"
-          echo "分支: ${GITHUB_REF#refs/heads/}"
-          echo "无法创建自动合并的 Pull Request"
-          echo "请手动检查并解决冲突，然后手动创建 PR"
+        run: gh pr merge ${{ steps.create-pr.outputs.PR_URL }} --merge --auto
+          # # 启用自动合并
+          # curl -L \
+          #   -X PUT \
+          #   -H "Accept: application/vnd.github+json" \
+          #   -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          #   -H "X-GitHub-Api-Version: 2022-11-28" \
+          #   "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
+          #   -d '{
+          #     "commit_title": "🤖 Auto-merge: merge release branch into dev",
+          #     "commit_message": "Automatically merged by GitHub Actions",
+          #     "merge_method": "merge"
+          #   }'
